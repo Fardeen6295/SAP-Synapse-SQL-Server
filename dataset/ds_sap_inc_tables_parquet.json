@@ -1,0 +1,36 @@
+{
+	"name": "ds_sap_inc_tables_parquet",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_ext_dl",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"p_folder": {
+				"type": "string"
+			},
+			"p_table": {
+				"type": "string"
+			}
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"fileName": {
+					"value": "@dataset().p_table",
+					"type": "Expression"
+				},
+				"folderPath": {
+					"value": "@dataset().p_folder",
+					"type": "Expression"
+				},
+				"fileSystem": "bronze"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": []
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

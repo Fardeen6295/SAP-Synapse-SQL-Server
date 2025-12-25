@@ -1,0 +1,432 @@
+{
+	"name": "SilverLayerTransformation",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "ds_customer",
+						"type": "DatasetReference"
+					},
+					"name": "customer"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_material",
+						"type": "DatasetReference"
+					},
+					"name": "material"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_order",
+						"type": "DatasetReference"
+					},
+					"name": "order"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_orderdetail",
+						"type": "DatasetReference"
+					},
+					"name": "orderdetail"
+				}
+			],
+			"sinks": [
+				{
+					"linkedService": {
+						"referenceName": "ls_ext_dl",
+						"type": "LinkedServiceReference"
+					},
+					"name": "CustSink"
+				},
+				{
+					"linkedService": {
+						"referenceName": "ls_ext_dl",
+						"type": "LinkedServiceReference"
+					},
+					"name": "MatSink"
+				},
+				{
+					"linkedService": {
+						"referenceName": "ls_ext_dl",
+						"type": "LinkedServiceReference"
+					},
+					"name": "OrdSink"
+				},
+				{
+					"linkedService": {
+						"referenceName": "ls_ext_dl",
+						"type": "LinkedServiceReference"
+					},
+					"name": "OrdDetSink"
+				}
+			],
+			"transformations": [
+				{
+					"name": "CustCols"
+				},
+				{
+					"name": "MatCols"
+				},
+				{
+					"name": "OrdCols"
+				},
+				{
+					"name": "OrdDetCols"
+				},
+				{
+					"name": "mainClient2",
+					"description": "Only Client Id data eg 100"
+				},
+				{
+					"name": "mainClient1",
+					"description": "only for client 100 (sybase prod id)"
+				},
+				{
+					"name": "mainClient3"
+				},
+				{
+					"name": "mainClient4"
+				},
+				{
+					"name": "CustDateFormat"
+				},
+				{
+					"name": "OrdDateFormat"
+				},
+				{
+					"name": "DeDup1",
+					"description": "Deduplication of Data"
+				},
+				{
+					"name": "DeDup2"
+				},
+				{
+					"name": "DeDup3"
+				},
+				{
+					"name": "CustFilterrn1"
+				},
+				{
+					"name": "MatFilterrn1"
+				},
+				{
+					"name": "OrdFilterrn1"
+				},
+				{
+					"name": "CustUpsert"
+				},
+				{
+					"name": "MatUpsert"
+				},
+				{
+					"name": "OrderUpsert"
+				},
+				{
+					"name": "OrdDetUpsert"
+				},
+				{
+					"name": "Revomern1"
+				},
+				{
+					"name": "Removern2"
+				},
+				{
+					"name": "Removern3"
+				},
+				{
+					"name": "Dedup4"
+				},
+				{
+					"name": "OrdDetFilterrn1"
+				},
+				{
+					"name": "Removern4"
+				},
+				{
+					"name": "lookuporderdate"
+				},
+				{
+					"name": "DateFormat"
+				},
+				{
+					"name": "YearMonth4"
+				},
+				{
+					"name": "YearMonth3"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          MANDT as string,",
+				"          KUNNR as string,",
+				"          NAME1 as string,",
+				"          ORT01 as string,",
+				"          LAND1 as string,",
+				"          ERDAT as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet') ~> customer",
+				"source(output(",
+				"          MANDT as string,",
+				"          MATNR as string,",
+				"          MTART as string,",
+				"          MAKTX as string,",
+				"          MEINS as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet') ~> material",
+				"source(output(",
+				"          MANDT as string,",
+				"          VBELN as string,",
+				"          KUNNR as string,",
+				"          ERDAT as string,",
+				"          AEDAT as string,",
+				"          NETWR as decimal(15,2),",
+				"          WAERK as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     format: 'parquet') ~> order",
+				"source(output(",
+				"          MANDT as string,",
+				"          VBELN as string,",
+				"          POSNR as string,",
+				"          MATNR as string,",
+				"          KWMENG as decimal(15,3),",
+				"          NETWR as decimal(15,2)",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     ignoreNoFilesFound: false,",
+				"     rowUrlColumn: 'IngestionTimestamp',",
+				"     format: 'parquet') ~> orderdetail",
+				"customer select(mapColumn(",
+				"          client_id = MANDT,",
+				"          customer_number = KUNNR,",
+				"          customer_name = NAME1,",
+				"          city = ORT01,",
+				"          country = LAND1,",
+				"          created_on = ERDAT",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> CustCols",
+				"material select(mapColumn(",
+				"          client_id = MANDT,",
+				"          material_number = MATNR,",
+				"          material_type = MTART,",
+				"          material_description = MAKTX,",
+				"          base_unit_of_measure = MEINS",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> MatCols",
+				"order select(mapColumn(",
+				"          client_id = MANDT,",
+				"          order_id = VBELN,",
+				"          customer_number = KUNNR,",
+				"          created_on = ERDAT,",
+				"          updated_on = AEDAT,",
+				"          net_value = NETWR,",
+				"          currency = WAERK",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> OrdCols",
+				"lookuporderdate select(mapColumn(",
+				"          client_id = orderdetail@MANDT,",
+				"          order_id = orderdetail@VBELN,",
+				"          item_number = POSNR,",
+				"          material_number = MATNR,",
+				"          quantity = KWMENG,",
+				"          net_value = orderdetail@NETWR,",
+				"          IngestionTimestamp,",
+				"          created_on = ERDAT",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> OrdDetCols",
+				"MatCols filter(client_id == '100') ~> mainClient2",
+				"CustCols filter(client_id == '100') ~> mainClient1",
+				"OrdCols filter(client_id == '100') ~> mainClient3",
+				"OrdDetCols filter(client_id == '100') ~> mainClient4",
+				"mainClient1 derive(created_on = iif( created_on == '00000000' || isNull(created_on), toDate(null()), toDate(created_on, 'yyyyMMdd'))) ~> CustDateFormat",
+				"mainClient3 derive(created_on = iif(created_on == '00000000' || isNull(created_on), toDate(null()), toDate(created_on, 'yyyyMMdd')),",
+				"          updated_on = iif(updated_on == '00000000' || isNull(updated_on), toDate(null()), toDate(updated_on, 'yyyyMMdd'))) ~> OrdDateFormat",
+				"CustDateFormat window(over(customer_number),",
+				"     desc(created_on, true),",
+				"     rn = rowNumber()) ~> DeDup1",
+				"mainClient2 window(over(material_number),",
+				"     desc(material_number, true),",
+				"     rn = rowNumber()) ~> DeDup2",
+				"OrdDateFormat window(over(order_id),",
+				"     desc(updated_on, true),",
+				"     rn = rowNumber()) ~> DeDup3",
+				"DeDup1 filter(rn == 1) ~> CustFilterrn1",
+				"DeDup2 filter(rn == 1) ~> MatFilterrn1",
+				"DeDup3 filter(rn == 1) ~> OrdFilterrn1",
+				"Revomern1 alterRow(upsertIf(1==1)) ~> CustUpsert",
+				"Removern2 alterRow(upsertIf(1==1)) ~> MatUpsert",
+				"YearMonth3 alterRow(upsertIf(1==1)) ~> OrderUpsert",
+				"YearMonth4 alterRow(upsertIf(1==1)) ~> OrdDetUpsert",
+				"CustFilterrn1 select(mapColumn(",
+				"          client_id,",
+				"          customer_number,",
+				"          customer_name,",
+				"          city,",
+				"          country,",
+				"          created_on",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> Revomern1",
+				"MatFilterrn1 select(mapColumn(",
+				"          client_id,",
+				"          material_number,",
+				"          material_type,",
+				"          material_description,",
+				"          base_unit_of_measure",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> Removern2",
+				"OrdFilterrn1 select(mapColumn(",
+				"          client_id,",
+				"          order_id,",
+				"          customer_number,",
+				"          created_on,",
+				"          updated_on,",
+				"          net_value,",
+				"          currency",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> Removern3",
+				"mainClient4 window(over(order_id,",
+				"          item_number,",
+				"          material_number),",
+				"     desc(order_id, true),",
+				"     desc(item_number, true),",
+				"     desc(material_number, true),",
+				"     desc(IngestionTimestamp, true),",
+				"     rn = rowNumber()) ~> Dedup4",
+				"Dedup4 filter(rn == 1) ~> OrdDetFilterrn1",
+				"OrdDetFilterrn1 select(mapColumn(",
+				"          client_id,",
+				"          order_id,",
+				"          item_number,",
+				"          material_number,",
+				"          quantity,",
+				"          net_value,",
+				"          created_on",
+				"     ),",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> Removern4",
+				"orderdetail, order lookup(orderdetail@VBELN == order@VBELN,",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookuporderdate",
+				"Removern4 derive(created_on = iif(created_on == '00000000' || isNull(created_on), toDate(null()), toDate(created_on, 'yyyyMMdd'))) ~> DateFormat",
+				"DateFormat derive(order_year = year(created_on),",
+				"          order_month = month(created_on)) ~> YearMonth4",
+				"Removern3 derive(order_year = year(created_on),",
+				"          order_month = month(created_on)) ~> YearMonth3",
+				"CustUpsert sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     compressionType: 'snappy',",
+				"     compressionLevel: 'Fastest',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'customer',",
+				"     mergeSchema: false,",
+				"     autoCompact: false,",
+				"     optimizedWrite: false,",
+				"     vacuum: 0,",
+				"     deletable: false,",
+				"     insertable: false,",
+				"     updateable: false,",
+				"     upsertable: true,",
+				"     keys:['customer_number'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> CustSink",
+				"MatUpsert sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     compressionType: 'snappy',",
+				"     compressionLevel: 'Fastest',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'material',",
+				"     mergeSchema: false,",
+				"     autoCompact: false,",
+				"     optimizedWrite: false,",
+				"     vacuum: 0,",
+				"     deletable: false,",
+				"     insertable: false,",
+				"     updateable: false,",
+				"     upsertable: true,",
+				"     keys:['material_number'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> MatSink",
+				"OrderUpsert sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     compressionType: 'snappy',",
+				"     compressionLevel: 'Fastest',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'order',",
+				"     mergeSchema: false,",
+				"     autoCompact: false,",
+				"     optimizedWrite: false,",
+				"     vacuum: 0,",
+				"     deletable: false,",
+				"     insertable: false,",
+				"     updateable: false,",
+				"     upsertable: true,",
+				"     keys:['order_id'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('key',",
+				"          0,",
+				"          order_year,",
+				"          order_month",
+				"     )) ~> OrdSink",
+				"OrdDetUpsert sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     format: 'delta',",
+				"     compressionType: 'snappy',",
+				"     compressionLevel: 'Fastest',",
+				"     fileSystem: 'silver',",
+				"     folderPath: 'order_detail',",
+				"     mergeSchema: false,",
+				"     autoCompact: false,",
+				"     optimizedWrite: false,",
+				"     vacuum: 0,",
+				"     deletable: false,",
+				"     insertable: false,",
+				"     updateable: false,",
+				"     upsertable: true,",
+				"     keys:['order_id','item_number','material_number'],",
+				"     umask: 0022,",
+				"     preCommands: [],",
+				"     postCommands: [],",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     partitionBy('key',",
+				"          0,",
+				"          order_year,",
+				"          order_month",
+				"     )) ~> OrdDetSink"
+			]
+		}
+	}
+}

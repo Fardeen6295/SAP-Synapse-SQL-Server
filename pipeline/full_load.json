@@ -1,0 +1,107 @@
+{
+	"name": "full_load",
+	"properties": {
+		"activities": [
+			{
+				"name": "ForEachTable",
+				"type": "ForEach",
+				"dependsOn": [],
+				"userProperties": [],
+				"typeProperties": {
+					"items": {
+						"value": "@pipeline().parameters.loop_tables_full",
+						"type": "Expression"
+					},
+					"activities": [
+						{
+							"name": "Sybase-to-DataLake",
+							"type": "Copy",
+							"dependsOn": [],
+							"policy": {
+								"timeout": "0.12:00:00",
+								"retry": 0,
+								"retryIntervalInSeconds": 30,
+								"secureOutput": false,
+								"secureInput": false
+							},
+							"userProperties": [],
+							"typeProperties": {
+								"source": {
+									"type": "AzureSqlSource",
+									"sqlReaderQuery": {
+										"value": "SELECT * FROM @{item().schema}.@{item().SapTableName}",
+										"type": "Expression"
+									},
+									"queryTimeout": "02:00:00",
+									"partitionOption": "None"
+								},
+								"sink": {
+									"type": "ParquetSink",
+									"storeSettings": {
+										"type": "AzureBlobFSWriteSettings"
+									},
+									"formatSettings": {
+										"type": "ParquetWriteSettings"
+									}
+								},
+								"enableStaging": false,
+								"translator": {
+									"type": "TabularTranslator",
+									"typeConversion": true,
+									"typeConversionSettings": {
+										"allowDataTruncation": true,
+										"treatBooleanAsNumber": false
+									}
+								}
+							},
+							"inputs": [
+								{
+									"referenceName": "ds_sybase_tables",
+									"type": "DatasetReference"
+								}
+							],
+							"outputs": [
+								{
+									"referenceName": "ds_sap_inc_tables_parquet",
+									"type": "DatasetReference",
+									"parameters": {
+										"p_folder": {
+											"value": "@concat('data/',item().TableName)",
+											"type": "Expression"
+										},
+										"p_table": {
+											"value": "@concat(item().TableName,'.parquet')",
+											"type": "Expression"
+										}
+									}
+								}
+							]
+						}
+					]
+				}
+			}
+		],
+		"parameters": {
+			"loop_tables_full": {
+				"type": "array",
+				"defaultValue": [
+					{
+						"schema": "SAPSR3",
+						"SapTableName": "MARA",
+						"cdcCol": "NULL",
+						"LoadType": "Full",
+						"TableName": "material"
+					}
+				]
+			}
+		},
+		"variables": {
+			"current_timestamp": {
+				"type": "String"
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-12-20T18:24:03Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}

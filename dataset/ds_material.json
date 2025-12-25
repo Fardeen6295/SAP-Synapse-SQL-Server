@@ -1,0 +1,42 @@
+{
+	"name": "ds_material",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_ext_dl",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "Parquet",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobFSLocation",
+				"folderPath": "data/material",
+				"fileSystem": "bronze"
+			},
+			"compressionCodec": "snappy"
+		},
+		"schema": [
+			{
+				"name": "MANDT",
+				"type": "UTF8"
+			},
+			{
+				"name": "MATNR",
+				"type": "UTF8"
+			},
+			{
+				"name": "MTART",
+				"type": "UTF8"
+			},
+			{
+				"name": "MAKTX",
+				"type": "UTF8"
+			},
+			{
+				"name": "MEINS",
+				"type": "UTF8"
+			}
+		]
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

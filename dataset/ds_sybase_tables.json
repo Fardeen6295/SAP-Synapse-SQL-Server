@@ -1,0 +1,13 @@
+{
+	"name": "ds_sybase_tables",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "ls_sap_sybase",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": []
+	},
+	"type": "Microsoft.Synapse/workspaces/datasets"
+}

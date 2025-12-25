@@ -1,0 +1,160 @@
+{
+	"name": "Parent_Pipeline",
+	"properties": {
+		"activities": [
+			{
+				"name": "full_lod",
+				"type": "ExecutePipeline",
+				"dependsOn": [],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "full_load",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"loop_tables_full": {
+							"value": "@pipeline().parameters.loop_tables_full",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "incremental_load",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "full_lod",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "incremental_load",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"loop_tables_inc": {
+							"value": "@pipeline().parameters.loop_tables_inc",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "incremental_load_child",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "incremental_load",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "incremental_load_child",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true,
+					"parameters": {
+						"loop_tables_inc_child": {
+							"value": "@pipeline().parameters.loop_tables_inc_child",
+							"type": "Expression"
+						}
+					}
+				}
+			},
+			{
+				"name": "Silver_Layer",
+				"type": "ExecutePipeline",
+				"dependsOn": [
+					{
+						"activity": "incremental_load_child",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"pipeline": {
+						"referenceName": "data_flow_silver",
+						"type": "PipelineReference"
+					},
+					"waitOnCompletion": true
+				}
+			}
+		],
+		"parameters": {
+			"loop_tables_full": {
+				"type": "array",
+				"defaultValue": [
+					{
+						"schema": "SAPSR3",
+						"SapTableName": "MARA",
+						"cdcCol": "NULL",
+						"LoadType": "Full",
+						"TableName": "material"
+					}
+				]
+			},
+			"loop_tables_inc": {
+				"type": "array",
+				"defaultValue": [
+					{
+						"schema": "SAPSR3",
+						"SapTableName": "KNA1",
+						"cdcCol": "ERDAT",
+						"LoadType": "Incremental",
+						"TableName": "customer"
+					},
+					{
+						"schema": "SAPSR3",
+						"SapTableName": "VBAK",
+						"cdcCol": "AEDAT",
+						"LoadType": "Incremental",
+						"TableName": "order"
+					}
+				]
+			},
+			"loop_tables_inc_child": {
+				"type": "array",
+				"defaultValue": [
+					{
+						"schema": "SAPSR3",
+						"SapTableName": "VBAP",
+						"TableName": "order_detail",
+						"SapParent": "VBAK",
+						"ParentcdcCol": "AEDAT",
+						"ParentTableName": "order",
+						"IdCol": "VBELN"
+					}
+				]
+			}
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-12-21T10:19:39Z"
+	},
+	"type": "Microsoft.Synapse/workspaces/pipelines"
+}
